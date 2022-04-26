@@ -227,13 +227,13 @@ var messageActions = [
 render.servers = function(serversSame) {
   state.current.servers.forEach(function(server) {
     var serverNode = $('#server-' + server.id, svg);
-    $('path', serverNode)
-      .attr('d', arcSpec(serverSpec(server.id),
-         util.clamp((server.electionAlarm - state.current.time) /
-                    (ELECTION_TIMEOUT * 2),
-                    0, 1)));
+    // $('path', serverNode)
+    //   .attr('d', arcSpec(serverSpec(server.id),
+    //      util.clamp((server.electionAlarm - state.current.time) /
+    //                 (ELECTION_TIMEOUT * 2),
+    //                 0, 1)));
     if (!serversSame) {
-      $('text.term', serverNode).text(server.term);
+      $('text.term', serverNode).text(server.highestBlock?server.highestBlock.height:0);
       serverNode.attr('class', 'server ' + server.state);
       $('circle.background', serverNode)
         .attr('style', 'fill: ' +
@@ -306,11 +306,11 @@ render.entry = function(spec, entry, committed) {
     .append(SVG('rect')
       .attr(spec)
       .attr('stroke-dasharray', committed ? '1 0' : '5 5')
-      .attr('style', 'fill: ' + termColors[entry.term % termColors.length]))
+      .attr('style', 'fill: ' + termColors[entry % termColors.length]))
     .append(SVG('text')
       .attr({x: spec.x + spec.width / 2,
              y: spec.y + spec.height / 2})
-      .text(entry.term));
+      .text(entry));
 };
 
 render.logs = function() {
@@ -374,12 +374,21 @@ render.logs = function() {
           .attr(logEntrySpec(index))
           .attr('class', 'log'));
     }
-    server.log.forEach(function(entry, i) {
+    // server.log.forEach(function(entry, i) {
+    //   var index = i + 1;
+    //     log.append(render.entry(
+    //          logEntrySpec(index),
+    //          entry,
+    //          index <= server.commitIndex));
+    // });
+    var chain = util.getchain(server.highestBlock);
+    chain.forEach(function(entry, i) {
       var index = i + 1;
-        log.append(render.entry(
-             logEntrySpec(index),
-             entry,
-             index <= server.commitIndex));
+      log.append(render.entry(
+            logEntrySpec(index),
+            entry.miner,
+            chain.includes(entry)));
+             //index <= server.commitIndex));
     });
     if (leader !== null && leader != server) {
       log.append(
@@ -502,12 +511,16 @@ serverModal = function(model, server) {
     .append($('<tr></tr>')
       .append('<th>miner</th>')
       .append('<th>height</th>')
+      .append('<th>isHighest</th>')
+      .append('<th>previousMiner</th>')
       //.append('<th>gossiped</th>')
     );
   for(var i=0 ;i<server.blocks.length;i+=1){
     blockTable.append($('<tr></tr>')
       .append('<td>S' + server.blocks[i].miner + '</td>')
       .append('<td>' + server.blocks[i].height + '</td>')
+      .append('<td>' + Object.is(server.blocks[i],server.highestBlock) + '</td>')
+      .append('<td>' + (server.blocks[i].prev?server.blocks[i].prev.miner:null) + '</td>')
       //.append('<td>' + server.gossiped[i] + '</td>')
 
     );
@@ -515,12 +528,12 @@ serverModal = function(model, server) {
   $('.modal-body', m)
     .empty()
     .append($('<dl class="dl-horizontal"></dl>')
-      .append(li('state', server.state))
-      .append(li('currentTerm', server.term))
-      .append(li('votedFor', server.votedFor))
-      .append(li('commitIndex', server.commitIndex))
-      .append(li('electionAlarm', relTime(server.electionAlarm, model.time)))
-      .append(li('hashRate', server.hashRate))
+      // .append(li('state', server.state))
+      // .append(li('currentTerm', server.term))
+      // .append(li('votedFor', server.votedFor))
+      // .append(li('commitIndex', server.commitIndex))
+      // .append(li('electionAlarm', relTime(server.electionAlarm, model.time)))
+      .append(li('hashrate', server.hashrate))
       .append(li('height', server.highestBlock?server.highestBlock.height:0))
       .append($('<dt>blocks</dt>'))
       .append($('<dd></dd>').append(blockTable))

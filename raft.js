@@ -281,18 +281,17 @@ var handleGossip = function(model, server, message) {
     
     if(message.block.height>(server.highestBlock?server.highestBlock.height:0)){
       
-      var current=message.block;
+      
       var increased=true;
-      while(current){
         
-        if(!server.blocks.includes(current)){
-          increased=false;
-          break;
-        }
-          
-        
-        current=current.prev;
-      };
+      
+
+      var chain = util.getchain(message.block);
+      for(var i=0;i<chain.length;i++)
+        if(!server.blocks.includes(chain[i])){
+          increased = false;
+        };
+
       if(increased){
         server.highestBlock=message.block;
         server.transactions=[]

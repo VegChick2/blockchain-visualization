@@ -109,3 +109,13 @@ util.clamp = function(value, low, high) {
     return high;
   return value;
 };
+
+util.getchain = function(block){
+  var current = block;
+  var result=[]
+  while(current){
+    result.push(current);
+    current=current.prev;
+  };
+  return result.reverse()
+}
