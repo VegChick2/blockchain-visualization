@@ -218,6 +218,7 @@ var serverActions = [
   ['restart', raft.restart],
   ['time out', raft.timeout],
   ['request', raft.clientRequest],
+  ['transaction',raft.signTransaction]
 ];
 
 var messageActions = [
@@ -506,13 +507,17 @@ serverModal = function(model, server) {
   var li = function(label, value) {
     return '<dt>' + label + '</dt><dd>' + value + '</dd>';
   };
+
+  var chain = util.getchain(server.highestBlock);
   var blockTable = $('<table></table>')
     .addClass('table table-condensed')
     .append($('<tr></tr>')
       .append('<th>miner</th>')
       .append('<th>height</th>')
       .append('<th>isHighest</th>')
+      .append('<th>isMainchain</th>')
       .append('<th>previousMiner</th>')
+      .append('<th>transactions</th>')
       //.append('<th>gossiped</th>')
     );
   for(var i=0 ;i<server.blocks.length;i+=1){
@@ -520,7 +525,9 @@ serverModal = function(model, server) {
       .append('<td>S' + server.blocks[i].miner + '</td>')
       .append('<td>' + server.blocks[i].height + '</td>')
       .append('<td>' + Object.is(server.blocks[i],server.highestBlock) + '</td>')
+      .append('<td>' + chain.includes(server.blocks[i]) + '</td>')
       .append('<td>' + (server.blocks[i].prev?server.blocks[i].prev.miner:null) + '</td>')
+      .append('<td>' + JSON.stringify(server.blocks[i].transactions.map(x=>x.signature)) + '</td>')
       //.append('<td>' + server.gossiped[i] + '</td>')
 
     );
@@ -535,6 +542,7 @@ serverModal = function(model, server) {
       // .append(li('electionAlarm', relTime(server.electionAlarm, model.time)))
       .append(li('hashrate', server.hashrate))
       .append(li('height', server.highestBlock?server.highestBlock.height:0))
+      .append(li('pending', JSON.stringify(server.transactions.map(x=>x.signature))))
       .append($('<dt>blocks</dt>'))
       .append($('<dd></dd>').append(blockTable))
     );
@@ -586,9 +594,12 @@ messageModal = function(model, message) {
       fields.append(li('success', message.success));
       fields.append(li('matchIndex', message.matchIndex));
     }
-  } else if (message.type == 'Gossip'){
+  } else if (message.type == 'BlockGossip'){
     fields.append(li('blockHeight', message.block.height));
     fields.append(li('blockMiner', message.block.miner));
+  }  else if (message.type == 'TransactionGossip'){
+    fields.append(li('signer', message.transaction.signature));
+    //fields.append(li('blockMiner', message.block.miner));
 
   }
   $('.modal-body', m)

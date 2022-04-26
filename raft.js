@@ -46,6 +46,8 @@ var logTerm = function(log, index) {
 
 var rules = {};
 raft.rules = rules;
+raft.gBlocks=[]
+raft.gTransactions=[]
 
 var makeElectionAlarm = function(now) {
   return now + (Math.random() + 1) * ELECTION_TIMEOUT;
@@ -71,6 +73,7 @@ raft.server = function(id, peers) {
     highestBlock:null,
     blocks:[],
     gossiped:[],
+    //gossiped2:[],
     transactions:[],
 
 
@@ -183,12 +186,15 @@ rules.mineBlock = function(model, server) {
   }
 };
 
-rules.sendGossips= function(model, server,peer) {
-  for (var i=0;i<server.blocks.length;i++){
-    if(!server.gossiped[i])
-      sendMessage(model,{from:server.id,to:peer,block:server.blocks[i],type:'Gossip'});
-
-  }
+rules.sendBlockGossips= function(model, server) {
+  server.peers.forEach(function(peer){
+    for (var i=0;i<server.blocks.length;i++){
+      if(!server.gossiped[i])
+        sendMessage(model,{from:server.id,to:peer,block:server.blocks[i],type:'BlockGossip'});
+    }
+  });
+  for(var i=0;i<server.blocks.length;i++)
+        server.gossiped[i]=true;
 }
 
 var handleRequestVoteRequest = function(model, server, request) {
@@ -270,7 +276,7 @@ var handleAppendEntriesReply = function(model, server, reply) {
     server.rpcDue[reply.from] = 0;
   }
 };
-var handleGossip = function(model, server, message) {
+var handleBlockGossip = function(model, server, message) {
   message;
   server;
   if(!server.blocks.includes(message.block)){
@@ -305,6 +311,27 @@ var handleGossip = function(model, server, message) {
   }
 }
 
+var handleTransactionGossip = function(model, server, message) {
+
+  var chain=util.getchain(server.highestBlock);
+
+  for (var i=0;i<chain.length;i++){
+    if(chain[i].transactions.includes(message.transaction))
+      return;
+  }
+
+  if(server.transactions.includes(message.transaction))
+    return;
+    //server.gossiped2.push(false);
+
+    
+    raft.signTransaction(model,server,message.transaction);
+    
+
+  
+
+}
+
 var handleMessage = function(model, server, message) {
   if (server.state == 'stopped')
     return;
@@ -318,8 +345,12 @@ var handleMessage = function(model, server, message) {
       handleAppendEntriesRequest(model, server, message);
     else
       handleAppendEntriesReply(model, server, message);
-  } else if(message.type == 'Gossip'){
-      handleGossip(model,server,message);
+  } else if(message.type == 'BlockGossip'){
+      
+        handleBlockGossip(model,server,message);
+  } else if(message.type == 'TransactionGossip'){
+      
+      handleTransactionGossip(model,server,message);
   }
 };
 
@@ -340,12 +371,9 @@ raft.update = function(model) {
 
     //send gossips about unsent blocks
     //this might be my, might from others.
-    server.peers.forEach(function(peer){
-      rules.sendGossips(model,server,peer);
-    });
+    
 
-    for(var i=0;i<server.blocks.length;i++)
-        server.gossiped[i]=true;
+    
 
   });
   var deliver = [];
@@ -364,6 +392,12 @@ raft.update = function(model) {
       }
     });
   });
+
+  model.servers.forEach(function(server) {
+    rules.sendBlockGossips(model,server);
+  });
+
+  
 };
 
 raft.stop = function(model, server) {
@@ -400,11 +434,18 @@ raft.timeout = function(model, server) {
 };
 
 raft.clientRequest = function(model, server) {
-  server.transactions.push({sender:server.id});
+  //server.transactions.push({sender:server.id});
   if (server.state == 'leader') {
     server.log.push({term: server.term,
                      value: 'v'});
   }
+};
+raft.signTransaction = function(model, server,transaction={signature:server.id}) {
+  server.transactions.push(transaction);
+  server.peers.forEach(function(peer){
+    sendMessage(model,{from:server.id,to:peer,transaction:transaction,type:'TransactionGossip'});
+  });
+
 };
 
 raft.spreadTimers = function(model) {
