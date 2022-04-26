@@ -2,6 +2,10 @@
 
 fix render update logics
 
+fix time scale wrt hashrate
+fix psudorandom by (intervaling?)
+
+
 global tree view
 pointer on global tree view
 

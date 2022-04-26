@@ -48,8 +48,26 @@ util.mapValues = function(m) {
   return $.map(m, function(v) { return v; });
 };
 
-util.clone = function(object) {
-  return jQuery.extend(true, {}, object);
+util.clone = function(obj) {
+  //return jQuery.extend(true, {}, object);
+  if(obj == null || typeof(obj) != 'object') {
+    return obj;
+  }
+
+  var temp = new obj.constructor();
+
+  for(var key in obj) {
+    if (obj.hasOwnProperty(key)) {
+      if(key==='block'|| key==='transaction'||key=='highestBlock'){
+        temp[key]=obj[key];
+      }else if(key==='blocks' || key==='transactions'){
+        temp[key]=obj[key].map((x) => x);
+      } else
+        temp[key] = util.clone(obj[key]);
+    }
+  }
+
+  return temp;
 };
 
 // From http://stackoverflow.com/a/6713782
@@ -66,6 +84,7 @@ util.equals = function(x, y) {
 
   var p;
   for ( p in x ) {
+    
     if ( ! x.hasOwnProperty( p ) ) continue;
       // other properties were tested using x.constructor === y.constructor
 
@@ -77,6 +96,18 @@ util.equals = function(x, y) {
 
     if ( typeof( x[ p ] ) !== "object" ) return false;
       // Numbers, Strings, Functions, Booleans must be strictly equal
+      if(p==='block'|| p==='transaction' || p==='highestBlock' && ! Object.is(x[ p ],  y[ p ]))
+        return false;
+      if(p==='blocks' || p==='transactions'){
+        if(x[p].length!=y[p].length) 
+          return false;
+
+        for(var i=0;i<x[p].length;i+=1){
+          if(! Object.is(x[p][ i ],  y[p][ i ]))
+            return false;
+        }
+      }
+        
 
     if ( ! util.equals( x[ p ],  y[ p ] ) ) return false;
       // Objects and Arrays must be tested recursively
@@ -118,4 +149,6 @@ util.getchain = function(block){
     current=current.prev;
   };
   return result.reverse()
-}
+};
+
+Math.seedrandom('hello2.');

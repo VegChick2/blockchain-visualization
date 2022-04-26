@@ -46,8 +46,8 @@ var logTerm = function(log, index) {
 
 var rules = {};
 raft.rules = rules;
-raft.gBlocks=[]
-raft.gTransactions=[]
+raft.gBlocks=[];
+raft.gTransactions=[];
 
 var makeElectionAlarm = function(now) {
   return now + (Math.random() + 1) * ELECTION_TIMEOUT;
@@ -71,9 +71,12 @@ raft.server = function(id, peers) {
     
     hashrate: 1,
     highestBlock:null,
+    //noclone
     blocks:[],
+    
     gossiped:[],
-    //gossiped2:[],
+    
+    //noclone
     transactions:[],
 
 
