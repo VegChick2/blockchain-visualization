@@ -497,26 +497,21 @@ serverModal = function(model, server) {
   var li = function(label, value) {
     return '<dt>' + label + '</dt><dd>' + value + '</dd>';
   };
-  var peerTable = $('<table></table>')
+  var blockTable = $('<table></table>')
     .addClass('table table-condensed')
     .append($('<tr></tr>')
-      .append('<th>peer</th>')
-      .append('<th>next index</th>')
-      .append('<th>match index</th>')
-      .append('<th>vote granted</th>')
-      .append('<th>RPC due</th>')
-      .append('<th>heartbeat due</th>')
+      .append('<th>miner</th>')
+      .append('<th>height</th>')
+      //.append('<th>gossiped</th>')
     );
-  server.peers.forEach(function(peer) {
-    peerTable.append($('<tr></tr>')
-      .append('<td>S' + peer + '</td>')
-      .append('<td>' + server.nextIndex[peer] + '</td>')
-      .append('<td>' + server.matchIndex[peer] + '</td>')
-      .append('<td>' + server.voteGranted[peer] + '</td>')
-      .append('<td>' + relTime(server.rpcDue[peer], model.time) + '</td>')
-      .append('<td>' + relTime(server.heartbeatDue[peer], model.time) + '</td>')
+  for(var i=0 ;i<server.blocks.length;i+=1){
+    blockTable.append($('<tr></tr>')
+      .append('<td>S' + server.blocks[i].miner + '</td>')
+      .append('<td>' + server.blocks[i].height + '</td>')
+      //.append('<td>' + server.gossiped[i] + '</td>')
+
     );
-  });
+  };
   $('.modal-body', m)
     .empty()
     .append($('<dl class="dl-horizontal"></dl>')
@@ -525,8 +520,10 @@ serverModal = function(model, server) {
       .append(li('votedFor', server.votedFor))
       .append(li('commitIndex', server.commitIndex))
       .append(li('electionAlarm', relTime(server.electionAlarm, model.time)))
-      .append($('<dt>peers</dt>'))
-      .append($('<dd></dd>').append(peerTable))
+      .append(li('hashRate', server.hashRate))
+      .append(li('height', server.highestBlock?server.highestBlock.height:0))
+      .append($('<dt>blocks</dt>'))
+      .append($('<dd></dd>').append(blockTable))
     );
   var footer = $('.modal-footer', m);
   footer.empty();
@@ -554,8 +551,8 @@ messageModal = function(model, message) {
       .append(li('from', 'S' + message.from))
       .append(li('to', 'S' + message.to))
       .append(li('sent', relTime(message.sendTime, model.time)))
-      .append(li('deliver', relTime(message.recvTime, model.time)))
-      .append(li('term', message.term));
+      .append(li('deliver', relTime(message.recvTime, model.time)));
+      //.append(li('term', message.term));
   if (message.type == 'RequestVote') {
     if (message.direction == 'request') {
       fields.append(li('lastLogIndex', message.lastLogIndex));
@@ -576,6 +573,10 @@ messageModal = function(model, message) {
       fields.append(li('success', message.success));
       fields.append(li('matchIndex', message.matchIndex));
     }
+  } else if (message.type == 'Gossip'){
+    fields.append(li('blockHeight', message.block.height));
+    fields.append(li('blockMiner', message.block.miner));
+
   }
   $('.modal-body', m)
     .empty()

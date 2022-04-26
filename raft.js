@@ -66,6 +66,14 @@ raft.server = function(id, peers) {
     nextIndex:    util.makeMap(peers, 1),
     rpcDue:       util.makeMap(peers, 0),
     heartbeatDue: util.makeMap(peers, 0),
+    
+    hashrate: 1,
+    highestBlock:null,
+    blocks:[],
+    gossiped:[],
+    transactions:[],
+
+
   };
 };
 
@@ -153,6 +161,36 @@ rules.advanceCommitIndex = function(model, server) {
   }
 };
 
+rules.mineBlock = function(model, server) {
+  
+  for(var i=0;i<server.hashrate;i+=1){
+    if (Math.random()<0.001){
+      server.highestBlock = {
+        //gossiped:false,
+        miner:server.id,
+        transactions:server.transactions,
+        prev:server.highestBlock,
+        height:(server.highestBlock?server.highestBlock.height:0)+1
+        
+      };
+      server.blocks.push(server.highestBlock);
+      server.gossiped.push(false);
+
+      server.transactions=[]
+
+    }
+
+  }
+};
+
+rules.sendGossips= function(model, server,peer) {
+  for (var i=0;i<server.blocks.length;i++){
+    if(!server.gossiped[i])
+      sendMessage(model,{from:server.id,to:peer,block:server.blocks[i],type:'Gossip'});
+
+  }
+}
+
 var handleRequestVoteRequest = function(model, server, request) {
   if (server.term < request.term)
     stepDown(model, server, request.term);
@@ -216,6 +254,7 @@ var handleAppendEntriesRequest = function(model, server, request) {
   });
 };
 
+
 var handleAppendEntriesReply = function(model, server, reply) {
   if (server.term < reply.term)
     stepDown(model, server, reply.term);
@@ -231,6 +270,41 @@ var handleAppendEntriesReply = function(model, server, reply) {
     server.rpcDue[reply.from] = 0;
   }
 };
+var handleGossip = function(model, server, message) {
+  message;
+  server;
+  if(!server.blocks.includes(message.block)){
+    server.blocks.push(message.block);
+    server.gossiped.push(false);
+    //update highest.
+    //clear my transactions
+    
+    if(message.block.height>(server.highestBlock?server.highestBlock.height:0)){
+      
+      var current=message.block;
+      var increased=true;
+      while(current){
+        
+        if(!server.blocks.includes(current)){
+          increased=false;
+          break;
+        }
+          
+        
+        current=current.prev;
+      };
+      if(increased){
+        server.highestBlock=message.block;
+        server.transactions=[]
+      }
+      
+      
+
+      
+    }
+
+  }
+}
 
 var handleMessage = function(model, server, message) {
   if (server.state == 'stopped')
@@ -245,19 +319,35 @@ var handleMessage = function(model, server, message) {
       handleAppendEntriesRequest(model, server, message);
     else
       handleAppendEntriesReply(model, server, message);
+  } else if(message.type == 'Gossip'){
+      handleGossip(model,server,message);
   }
 };
 
 
 raft.update = function(model) {
   model.servers.forEach(function(server) {
-    rules.startNewElection(model, server);
-    rules.becomeLeader(model, server);
-    rules.advanceCommitIndex(model, server);
-    server.peers.forEach(function(peer) {
-      rules.sendRequestVote(model, server, peer);
-      rules.sendAppendEntries(model, server, peer);
+    // rules.startNewElection(model, server);
+    // rules.becomeLeader(model, server);
+    // rules.advanceCommitIndex(model, server);
+    // server.peers.forEach(function(peer) {
+    //   rules.sendRequestVote(model, server, peer);
+    //   rules.sendAppendEntries(model, server, peer);
+    // });
+
+    //mine on longest chain for hashrate times
+    //secure pending transactions on new blocks
+    rules.mineBlock(model,server);
+
+    //send gossips about unsent blocks
+    //this might be my, might from others.
+    server.peers.forEach(function(peer){
+      rules.sendGossips(model,server,peer);
     });
+
+    for(var i=0;i<server.blocks.length;i++)
+        server.gossiped[i]=true;
+
   });
   var deliver = [];
   var keep = [];
@@ -311,6 +401,7 @@ raft.timeout = function(model, server) {
 };
 
 raft.clientRequest = function(model, server) {
+  server.transactions.push({sender:server.id});
   if (server.state == 'leader') {
     server.log.push({term: server.term,
                      value: 'v'});
