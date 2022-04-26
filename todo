@@ -1,16 +1,22 @@
 !support transactions
 
-fix render update logics
-
-fix time scale wrt hashrate
-fix psudorandom by (intervaling?)
+!fix render update logics
 
 
 global tree view
 pointer on global tree view
 
 
+fix time scale wrt hashrate
+fix psudorandom by (intervaling?)
+
+fix pause,resume,restart.
+
+fix 'raft' words
+
 peer control
+
+detailed transactions
 
 gui optimize
 
