@@ -198,7 +198,7 @@ rules.mineBlock = function(model, server) {
       server.highestBlock=tmp;
 
       //todo:update pointer
-      var newgraphnode=cy.add({ group: 'nodes', data: {source:server.highestBlock,content:'S'+server.id+' []',color:serverColors[server.id % serverColors.length],shape:'rectangle'}});
+      var newgraphnode=cy.add({ group: 'nodes', data: {source:server.highestBlock,content:'S'+server.id,color:serverColors[server.id % serverColors.length],shape:'rectangle'}});
       server.highestBlock.graphnode=newgraphnode
       if(server.highestBlock.prev)
         cy.add({ group: 'edges', data: {source:server.highestBlock.prev.graphnode.id() , target: server.highestBlock.graphnode.id() }});
@@ -206,20 +206,20 @@ rules.mineBlock = function(model, server) {
 
       //cy.add({ group: 'nodes', data: {content:'S'+server.id,color:serverColors[server.id % serverColors.length],shape:'hexagon'}});
 
-      if(server.highestBlock.prev){
-        let [ser,l]=server.highestBlock.prev.graphnode.data('content').split(' ');
-        l=JSON.parse(l);
-        l.splice(l.indexOf(server.id), 1);
-        l=JSON.stringify(l);
-        server.highestBlock.prev.graphnode.data('content',[ser,l].join(' '))
-      }
+      // if(server.highestBlock.prev){
+      //   let [ser,l]=server.highestBlock.prev.graphnode.data('content').split(' ');
+      //   l=JSON.parse(l);
+      //   l.splice(l.indexOf(server.id), 1);
+      //   l=JSON.stringify(l);
+      //   server.highestBlock.prev.graphnode.data('content',[ser,l].join(' '))
+      // }
       
 
-      let [ser,l]=server.highestBlock.graphnode.data('content').split(' ');
-      l=JSON.parse(l);
-      l.push(server.id)
-      l=JSON.stringify(l);
-      server.highestBlock.graphnode.data('content',[ser,l].join(' '))
+      // let [ser,l]=server.highestBlock.graphnode.data('content').split(' ');
+      // l=JSON.parse(l);
+      // l.push(server.id)
+      // l=JSON.stringify(l);
+      // server.highestBlock.graphnode.data('content',[ser,l].join(' '))
       
 
       
@@ -347,23 +347,23 @@ var handleBlockGossip = function(model, server, message) {
 
       if(increased){
 
-        if(server.highestBlock){
-          let [ser,l]=server.highestBlock.graphnode.data('content').split(' ');
-          l=JSON.parse(l);
-          l.splice(l.indexOf(server.id), 1);
-          l=JSON.stringify(l);
-          server.highestBlock.graphnode.data('content',[ser,l].join(' '))
-        }
+        // if(server.highestBlock){
+        //   let [ser,l]=server.highestBlock.graphnode.data('content').split(' ');
+        //   l=JSON.parse(l);
+        //   l.splice(l.indexOf(server.id), 1);
+        //   l=JSON.stringify(l);
+        //   server.highestBlock.graphnode.data('content',[ser,l].join(' '))
+        // }
 
         server.highestBlock=message.block;
         server.transactions=[]
 
-        //todo:update pointer
-        let [ser,l]=server.highestBlock.graphnode.data('content').split(' ');
-        l=JSON.parse(l);
-        l.push(server.id)
-        l=JSON.stringify(l);
-        server.highestBlock.graphnode.data('content',[ser,l].join(' '))
+        // //todo:update pointer
+        // let [ser,l]=server.highestBlock.graphnode.data('content').split(' ');
+        // l=JSON.parse(l);
+        // l.push(server.id)
+        // l=JSON.stringify(l);
+        // server.highestBlock.graphnode.data('content',[ser,l].join(' '))
       }
 
 
