@@ -65,7 +65,8 @@ cy=cytoscape({
         'target-arrow-color': '#9dbaea',
         'curve-style': 'bezier'
       }
-    }
+    },
+
   ],
 
   elements: {
@@ -74,6 +75,48 @@ cy=cytoscape({
     edges: [
     ]
   }
+});
+
+cy.on('tap', 'node', function(evt){
+  var node = evt.target;
+  if(colorpolicy==0)
+    return;
+  var server = state.current.servers[colorpolicy-1];
+
+  let source=node.data('source');
+  let content=node.data('content');
+
+  
+  if(server.blocks.indexOf(source)!=-1){
+    server.blocks.splice(server.blocks.indexOf(source), 1);
+    server.gossiped.splice(server.blocks.indexOf(source), 1);
+  }
+    
+
+  var currentlength=0;
+  for(var i=0;i<server.blocks.length;i+=1){
+    var chain = util.getchain(server.blocks[i]);
+    if(chain.length<=currentlength)
+      continue;
+
+    var isGood=true;
+    
+    for(var j=0;j<chain.length;j+=1)
+      if(!server.blocks.includes(chain[j])){
+        isGood=false;
+        break;
+      }
+
+    if(isGood){
+      currentlength=chain.length;
+      server.highestBlock=server.blocks[i];
+    }
+    
+
+
+  }
+
+  
 });
 
 $('#cy').append(cy);
