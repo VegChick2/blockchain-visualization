@@ -176,27 +176,53 @@ var serverColors = [
 ];
 rules.mineBlock = function(model, server) {
   
+  
   for(var i=0;i<server.hashrate;i+=1){
     if (Math.random()<0.001){
 
-      var newgraphnode=cy.add({ group: 'nodes', data: {content:'S'+server.id,color:serverColors[server.id % serverColors.length]}});
-      if(server.highestBlock)
-        cy.add({ group: 'edges', data: {source: server.highestBlock.graphnode.id(), target: newgraphnode.id() }});
-      cy.layout({name:'dagre'}).run();
-
-      server.highestBlock = {
+      
+      
+      var tmp = {
         //gossiped:false,
         miner:server.id,
         transactions:server.transactions,
         prev:server.highestBlock,
         height:(server.highestBlock?server.highestBlock.height:0)+1,
-        graphnode:newgraphnode,
+        graphnode:null,
         
       };
-      server.blocks.push(server.highestBlock);
+      server.blocks.push(tmp);
       server.gossiped.push(false);
-
       server.transactions=[]
+
+      server.highestBlock=tmp;
+
+      //todo:update pointer
+      var newgraphnode=cy.add({ group: 'nodes', data: {source:server.highestBlock,content:'S'+server.id+' []',color:serverColors[server.id % serverColors.length],shape:'rectangle'}});
+      server.highestBlock.graphnode=newgraphnode
+      if(server.highestBlock.prev)
+        cy.add({ group: 'edges', data: {source:server.highestBlock.prev.graphnode.id() , target: server.highestBlock.graphnode.id() }});
+      
+
+      //cy.add({ group: 'nodes', data: {content:'S'+server.id,color:serverColors[server.id % serverColors.length],shape:'hexagon'}});
+
+      if(server.highestBlock.prev){
+        let [ser,l]=server.highestBlock.prev.graphnode.data('content').split(' ');
+        l=JSON.parse(l);
+        l.splice(l.indexOf(server.id), 1);
+        l=JSON.stringify(l);
+        server.highestBlock.prev.graphnode.data('content',[ser,l].join(' '))
+      }
+      
+
+      let [ser,l]=server.highestBlock.graphnode.data('content').split(' ');
+      l=JSON.parse(l);
+      l.push(server.id)
+      l=JSON.stringify(l);
+      server.highestBlock.graphnode.data('content',[ser,l].join(' '))
+      
+
+      
 
     }
 
@@ -299,10 +325,14 @@ var handleBlockGossip = function(model, server, message) {
   if(!server.blocks.includes(message.block)){
     server.blocks.push(message.block);
     server.gossiped.push(false);
+    
     //update highest.
     //clear my transactions
+
+    message.block.graphnode.data('content',message.block.graphnode.data('content'));
     
     if(message.block.height>(server.highestBlock?server.highestBlock.height:0)){
+      
       
       
       var increased=true;
@@ -316,9 +346,29 @@ var handleBlockGossip = function(model, server, message) {
         };
 
       if(increased){
+
+        if(server.highestBlock){
+          let [ser,l]=server.highestBlock.graphnode.data('content').split(' ');
+          l=JSON.parse(l);
+          l.splice(l.indexOf(server.id), 1);
+          l=JSON.stringify(l);
+          server.highestBlock.graphnode.data('content',[ser,l].join(' '))
+        }
+
         server.highestBlock=message.block;
         server.transactions=[]
+
+        //todo:update pointer
+        let [ser,l]=server.highestBlock.graphnode.data('content').split(' ');
+        l=JSON.parse(l);
+        l.push(server.id)
+        l=JSON.stringify(l);
+        server.highestBlock.graphnode.data('content',[ser,l].join(' '))
       }
+
+
+      
+
       
       
 
@@ -413,7 +463,8 @@ raft.update = function(model) {
   model.servers.forEach(function(server) {
     rules.sendBlockGossips(model,server);
   });
-
+  cy.layout({name:'dagre'}).run();
+  //cy.forceRender()
   
 };
 

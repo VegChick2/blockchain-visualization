@@ -32,9 +32,15 @@ cy=cytoscape({
       selector: 'node',
       style: {
         content: "data(content)",
-        'background-color': 'data(color)',
+        shape:'data(shape)',
+        'background-color': function( ele ){
+          let source=ele.data('source');
+           //return state.current.servers[0].blocks.includes(source)?'yellow':'black'; 
+           return serverColors[source.miner%serverColors.length]
+        },//'data(color)',
         "text-valign": "center",
         "text-halign": "right",
+        'font-size':'7%'
       }
     },
 

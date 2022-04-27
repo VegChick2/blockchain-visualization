@@ -3,16 +3,16 @@
 !fix render update logics
 
 
-global tree view
+!global tree view
 pointer on global tree view
 
 
 fix time scale wrt hashrate
 fix psudorandom by (intervaling?)
 
-fix pause,resume,restart.
 
-fix 'raft' words
+
+
 
 peer control
 
@@ -20,4 +20,7 @@ detailed transactions
 
 gui optimize
 
+fix pause,resume,restart.
 pull data
+
+fix 'raft' words
