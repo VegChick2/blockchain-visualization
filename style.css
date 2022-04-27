@@ -256,6 +256,6 @@ a#time-button  {
   height: 50%;
   position: absolute;
   left: 0;
-  top: 50%;
+  top: 60%;
   z-index: 999;
 }

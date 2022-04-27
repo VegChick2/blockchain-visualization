@@ -69,7 +69,7 @@ raft.server = function(id, peers) {
     rpcDue:       util.makeMap(peers, 0),
     heartbeatDue: util.makeMap(peers, 0),
     
-    hashrate: 1,
+    //hashrate: 1,
     highestBlock:null,
     //noclone
     blocks:[],
@@ -180,7 +180,8 @@ rules.mineBlock = function(model, server) {
     return;
   
   
-  for(var i=0;i<server.hashrate*modelMicrosElapsed/10;i+=1){
+  var hashrate=parseInt($('#hashrate'+server.id).val());
+  for(var i=0;i<hashrate*modelMicrosElapsed/10;i+=1){
     if (Math.random()<0.0001){
 
       

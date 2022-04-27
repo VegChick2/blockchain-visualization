@@ -28,7 +28,7 @@
 
     <div class="container">
       <div class="row" style="margin-top: 20px">
-        <svg xmlns="http://www.w3.org/2000/svg" version="1.1" style="border: 0px solid black" width="745" height="400">
+        <svg xmlns="http://www.w3.org/2000/svg" version="1.1" style="border: 0px solid black" width="1080" height="400">
           <defs>
             <marker id="TriangleOutM" orient="auto" refX="0.0" refY="0.0" style="overflow:visible">
               <path d="M 5.77,0.0 L -2.88,5.0 L -2.88,-5.0 L 5.77,0.0 z" transform="scale(0.4)" />
@@ -62,6 +62,15 @@
         <span id="speed-icon" class="glyphicon glyphicon-dashboard" style="font-size: 24pt; vertical-align: middle" data-toggle="tooltip" title="Simulation speed"></span>
         &nbsp;&nbsp;
         <input id="speed" style="width: 650px"  data-slider-id='speedSlider' type="text" data-slider-min="0" data-slider-max="3" data-slider-step=".01" data-slider-value="2" />
+      </div>
+      <div class="hashratecontainer">
+        Hashrate:<br>
+        S1<input type="number" min="0" max="50" id="hashrate1" value=1> 
+        S2<input type="number" min="0" max="50" id="hashrate2" value=1> 
+        S3<input type="number" min="0" max="50" id="hashrate3" value=1> 
+        S4<input type="number" min="0" max="50" id="hashrate4" value=1> 
+        S5<input type="number" min="0" max="50" id="hashrate5" value=1>
+        
       </div>
     </div>
 
@@ -151,7 +160,8 @@
     </div>
 
     <div id="resetcolorpolicy"></div>
-    <input type="text" id="peers">
+    <br>
+    peers: <input type="text" id="peers">
   <div id="cy"></div>
 
   </body>

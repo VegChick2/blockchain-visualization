@@ -116,7 +116,9 @@ playback = function() {
   var paused = true;
   var pause = function() {
     paused = true;
-    $('#peers').toggle(true);
+    //$('#peers').toggle(true);
+    $('#peers').attr('disabled',false);
+    $("[id^=hashrate]").attr('disabled',false);
 
     $('#time-icon')
       .removeClass('glyphicon-time')
@@ -129,7 +131,9 @@ playback = function() {
     if (paused) {
       
       paused = false;
-      $('#peers').toggle(false);
+      //$('#peers').toggle(false);
+      $('#peers').attr('disabled',true);
+      $("[id^=hashrate]").attr('disabled',true);
 
       $('#time-icon')
         .removeClass('glyphicon-pause')

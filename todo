@@ -1,20 +1,21 @@
-!support transactions
+! support transactions
 
-!fix render update logics
+! fix render update logics
 
 
-!global tree view
-!separated tree view from server
-!pointer on global tree view
+! global tree view
+! separated tree view from server
+! pointer on global tree view
 
-!peer control
-!fix pause,resume,restart.
+! peer control
+! fix pause,resume,restart.
 
-fix time scale wrt hashrate
-fix psudorandom by (intervaling?)
+! fix time scale wrt hashrate
+x fix psudorandom by (intervaling?)
 
+! hashrate slider
 forget a block(51 attack demo)
-hashrate slider
+
 
 
 
