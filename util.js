@@ -157,4 +157,22 @@ util.recolorcy=function(cy){
       elems[i].data('content',elems[i].data('content'));
   };
 }
+
+util.writepeers=function(servers){
+  var res=[];
+  for(var i=0; i<servers.length;i+=1){
+    res.push(servers[i].peers);
+    
+  }
+  return JSON.stringify(res)
+}
+util.readpeers=function(servers,str){
+  var inpu=JSON.parse(str);
+  for(var i=0; i<servers.length;i+=1){
+    servers[i].peers=inpu[i];
+    
+  }
+  
+}
+
 Math.seedrandom('hello2.');

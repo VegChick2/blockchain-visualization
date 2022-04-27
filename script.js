@@ -112,7 +112,7 @@ var SVG = function(tag) {
 };
 
 playback = function() {
-  var paused = false;
+  var paused = true;
   var pause = function() {
     paused = true;
     $('#time-icon')
@@ -128,7 +128,7 @@ playback = function() {
         .removeClass('glyphicon-pause')
         .addClass('glyphicon-time');
       $('#pause').attr('class', 'resumed');
-      render.update();
+      //render.update();
     }
   };
   return {
@@ -156,6 +156,8 @@ playback = function() {
       state.current.servers.push(raft.server(i, peers));
   }
 })();
+
+$('#peers').val(util.writepeers(state.current.servers));
 
 var svg = $('svg');
 
@@ -727,6 +729,7 @@ var lastRenderedV = null;
 render.update = function() {
   // Same indicates both underlying object identity hasn't changed and its
   // value hasn't changed.
+  $('#peers').val(util.writepeers(state.current.servers));
   util.recolorcy(cy);
   var serversSame = false;
   var messagesSame = false;
