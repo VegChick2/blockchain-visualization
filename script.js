@@ -15,7 +15,7 @@ var state;
 var record;
 var replay;
 var cy;
-var colorpolicy=0;
+var colorpolicy=1;
 
 $(function() {
 cy=cytoscape({
@@ -295,11 +295,8 @@ render.clock = function() {
 };
 var setcolorpolicy=function(model, server) {
   colorpolicy=server.id;
-  var elems=cy.elements();
-  for(var i=0; i<elems.length;i+=1){
-    if(elems[i].group()=='nodes')
-      elems[i].data('content',elems[i].data('content'));
-  }
+  render.update();
+  $('#resetcolorpolicy').children().text('reset to global view; current view:'+server.id+' (0 is global)');
 }
 var serverActions = [
   ['stop', raft.stop],
@@ -595,9 +592,9 @@ var button = function(label) {
   return $('<button type="button" class="btn btn-default"></button>')
     .text(label);
 };
-$('#resetcolorpolicy').append(button('reset')
+$('#resetcolorpolicy').append(button('reset to global view; current view:0 (0 is global)')
 .click(function(){
-  
+  $('#resetcolorpolicy').children().text('reset to global view; current view:'+0+' (0 is global)');
     colorpolicy=0;
   var elems=cy.elements();
   for(var i=0; i<elems.length;i+=1){
@@ -750,6 +747,7 @@ var lastRenderedV = null;
 render.update = function() {
   // Same indicates both underlying object identity hasn't changed and its
   // value hasn't changed.
+  util.recolorcy(cy);
   var serversSame = false;
   var messagesSame = false;
   if (lastRenderedO == state.current) {
@@ -774,11 +772,13 @@ render.update = function() {
       var modelMicrosElapsed = wallMicrosElapsed / speed;
       var modelMicros = state.current.time + modelMicrosElapsed;
       state.seek(modelMicros);
+      
       if (modelMicros >= state.getMaxTime() && onReplayDone !== undefined) {
         var f = onReplayDone;
         onReplayDone = undefined;
         f();
       }
+      
       render.update();
     }
     last = timestamp;
@@ -888,6 +888,7 @@ timeSlider.on('slideStop', function() {
   // have to seek and update here too.
   state.seek(timeSlider.slider('getValue'));
   sliding = false;
+  
   render.update();
 });
 timeSlider.on('slide', function() {

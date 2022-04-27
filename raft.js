@@ -329,7 +329,7 @@ var handleBlockGossip = function(model, server, message) {
     //update highest.
     //clear my transactions
 
-    message.block.graphnode.data('content',message.block.graphnode.data('content'));
+    
     
     if(message.block.height>(server.highestBlock?server.highestBlock.height:0)){
       
@@ -464,7 +464,8 @@ raft.update = function(model) {
     rules.sendBlockGossips(model,server);
   });
   cy.layout({name:'dagre'}).run();
-  //cy.forceRender()
+  
+  
   
 };
 

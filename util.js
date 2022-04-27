@@ -150,5 +150,11 @@ util.getchain = function(block){
   };
   return result.reverse()
 };
-
+util.recolorcy=function(cy){
+  var elems=cy.elements();
+  for(var i=0; i<elems.length;i+=1){
+    if(elems[i].group()=='nodes')
+      elems[i].data('content',elems[i].data('content'));
+  };
+}
 Math.seedrandom('hello2.');
