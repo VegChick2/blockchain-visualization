@@ -64,7 +64,7 @@ var makeState = function(initial) {
       if (time <= maxTime) {
         self.rewind(time);
       } else if (time > maxTime) {
-        util.readpeers(state.current.servers,$('#peers').val());
+        
         self.advance(time);
       }
     },

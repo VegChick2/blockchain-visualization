@@ -174,5 +174,5 @@ util.readpeers=function(servers,str){
   }
   
 }
-
+var modelMicrosElapsed;
 Math.seedrandom('hello2.');

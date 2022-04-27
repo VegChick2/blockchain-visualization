@@ -15,7 +15,7 @@ var state;
 var record;
 var replay;
 var cy;
-var colorpolicy=1;
+var colorpolicy=0;
 
 $(function() {
 cy=cytoscape({
@@ -111,10 +111,13 @@ var SVG = function(tag) {
    return $(document.createElementNS('http://www.w3.org/2000/svg', tag));
 };
 
+
 playback = function() {
   var paused = true;
   var pause = function() {
     paused = true;
+    $('#peers').toggle(true);
+
     $('#time-icon')
       .removeClass('glyphicon-time')
       .addClass('glyphicon-pause');
@@ -122,8 +125,12 @@ playback = function() {
     render.update();
   };
   var resume = function() {
+    util.readpeers(state.current.servers,$('#peers').val());
     if (paused) {
+      
       paused = false;
+      $('#peers').toggle(false);
+
       $('#time-icon')
         .removeClass('glyphicon-pause')
         .addClass('glyphicon-time');
@@ -302,6 +309,11 @@ render.servers = function(serversSame) {
     //      util.clamp((server.electionAlarm - state.current.time) /
     //                 (ELECTION_TIMEOUT * 2),
     //                 0, 1)));
+    // $(document.body).append(SVG('line').attr({
+    //   x1: 500,
+    //   y1: 500,x2:3000,y2:3000,style:"stroke:rgb(255,0,0);stroke-width:2",zIndex: 999999999999,
+    // }));
+
     if (!serversSame) {
       $('text.term', serverNode).text(server.highestBlock?server.highestBlock.height:0);
       serverNode.attr('class', 'server ' + server.state);
@@ -311,6 +323,28 @@ render.servers = function(serversSame) {
                 : serverColors[server.id % serverColors.length]));
       var votesGroup = $('.votes', serverNode);
       votesGroup.empty();
+      
+      
+      for(let i=0;i<server.peers.length;i+=1){
+        var target=server.peers[i];
+        var p1=serverSpec(server.id);
+        var p2=serverSpec(parseInt(target));
+        votesGroup.append(
+          
+          SVG('line')
+            .attr({
+              x1: p1.cx,
+              y1: p1.cy,
+              x2: p2.cx,
+              y2: p2.cy,
+              'stroke-dasharray':"1, 10",
+              
+              'marker-start':'url(#startarrow)',
+              
+              
+        }))
+      };
+
       if (server.state == 'candidate') {
         state.current.servers.forEach(function (peer) {
           var coord = util.circleCoord((peer.id - 1) / NUM_SERVERS,
@@ -726,6 +760,7 @@ var speedSliderTransform = function(v) {
 
 var lastRenderedO = null;
 var lastRenderedV = null;
+
 render.update = function() {
   // Same indicates both underlying object identity hasn't changed and its
   // value hasn't changed.
@@ -752,7 +787,7 @@ render.update = function() {
     if (!playback.isPaused() && last !== null && timestamp - last < 500) {
       var wallMicrosElapsed = (timestamp - last) * 1000;
       var speed = speedSliderTransform($('#speed').slider('getValue'));
-      var modelMicrosElapsed = wallMicrosElapsed / speed;
+      modelMicrosElapsed = wallMicrosElapsed / speed;
       var modelMicros = state.current.time + modelMicrosElapsed;
       state.seek(modelMicros);
       

@@ -1,6 +1,18 @@
 body {
   font-size: 16pt;
 }
+line {
+  stroke:rgb(0, 0, 0);
+  stroke-width: 2
+}
+/* line {
+  position: absolute;
+  z-index: -999
+}
+circle {
+  position: absolute;
+  z-index: 999
+} */
 
 #modal-details {
   font-size: 12pt;

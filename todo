@@ -7,25 +7,30 @@
 !separated tree view from server
 !pointer on global tree view
 
-
+!peer control
+!fix pause,resume,restart.
 
 fix time scale wrt hashrate
 fix psudorandom by (intervaling?)
 
+forget a block(51 attack demo)
+hashrate slider
 
 
 
 
 
-peer control
 
 
 
-detailed transactions
 
-gui optimize
 
-fix pause,resume,restart.
-pull data
 
-fix 'raft' words
+
+optional:
+    pull data
+    detailed transactions
+super optional:
+    fix 'raft' words
+    gui optimize
+    

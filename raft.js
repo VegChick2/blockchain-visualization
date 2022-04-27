@@ -174,11 +174,14 @@ var serverColors = [
   '#a6d854',
   '#ffd92f',
 ];
+
 rules.mineBlock = function(model, server) {
+  if (server.state == 'stopped')
+    return;
   
   
-  for(var i=0;i<server.hashrate;i+=1){
-    if (Math.random()<0.001){
+  for(var i=0;i<server.hashrate*modelMicrosElapsed/10;i+=1){
+    if (Math.random()<0.0001){
 
       
       
@@ -230,6 +233,8 @@ rules.mineBlock = function(model, server) {
 };
 
 rules.sendBlockGossips= function(model, server) {
+  if (server.state == 'stopped')
+    return;
   server.peers.forEach(function(peer){
     for (var i=0;i<server.blocks.length;i++){
       if(!server.gossiped[i])
@@ -463,7 +468,7 @@ raft.update = function(model) {
   model.servers.forEach(function(server) {
     rules.sendBlockGossips(model,server);
   });
-  cy.layout({name:'dagre'}).run();
+  cy.layout({name:'dagre',rankDir:'LR',align: 'UL',}).run();
   
   
   
@@ -510,6 +515,8 @@ raft.clientRequest = function(model, server) {
   }
 };
 raft.signTransaction = function(model, server,transaction={signature:server.id}) {
+  if(server.state=='stopped')
+    return;
   server.transactions.push(transaction);
   server.peers.forEach(function(peer){
     sendMessage(model,{from:server.id,to:peer,transaction:transaction,type:'TransactionGossip'});
