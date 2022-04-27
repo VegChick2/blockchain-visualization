@@ -166,17 +166,31 @@ rules.advanceCommitIndex = function(model, server) {
     server.commitIndex = Math.max(server.commitIndex, n);
   }
 };
-
+var serverColors = [
+  '#66c2a5',
+  '#fc8d62',
+  '#8da0cb',
+  '#e78ac3',
+  '#a6d854',
+  '#ffd92f',
+];
 rules.mineBlock = function(model, server) {
   
   for(var i=0;i<server.hashrate;i+=1){
     if (Math.random()<0.001){
+
+      var newgraphnode=cy.add({ group: 'nodes', data: {content:'S'+server.id,color:serverColors[server.id % serverColors.length]}});
+      if(server.highestBlock)
+        cy.add({ group: 'edges', data: {source: server.highestBlock.graphnode.id(), target: newgraphnode.id() }});
+      cy.layout({name:'dagre'}).run();
+
       server.highestBlock = {
         //gossiped:false,
         miner:server.id,
         transactions:server.transactions,
         prev:server.highestBlock,
-        height:(server.highestBlock?server.highestBlock.height:0)+1
+        height:(server.highestBlock?server.highestBlock.height:0)+1,
+        graphnode:newgraphnode,
         
       };
       server.blocks.push(server.highestBlock);

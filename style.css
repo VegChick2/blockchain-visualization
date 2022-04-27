@@ -238,3 +238,12 @@ a#time-button  {
 .slide .gray {
   color: #333;
 }
+
+#cy {
+  width: 50%;
+  height: 50%;
+  position: absolute;
+  left: 0;
+  top: 500;
+  z-index: 999;
+}
