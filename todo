@@ -4,7 +4,9 @@
 
 
 !global tree view
-pointer on global tree view
+!separated tree view from server
+!pointer on global tree view
+
 
 
 fix time scale wrt hashrate
@@ -14,7 +16,7 @@ fix psudorandom by (intervaling?)
 
 
 
-peer control
+    peer control
 
 detailed transactions
 

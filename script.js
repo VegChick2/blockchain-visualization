@@ -15,6 +15,7 @@ var state;
 var record;
 var replay;
 var cy;
+var colorpolicy=0;
 
 $(function() {
 cy=cytoscape({
@@ -35,9 +36,10 @@ cy=cytoscape({
         shape:'data(shape)',
         'background-color': function( ele ){
           let source=ele.data('source');
-           //return state.current.servers[0].blocks.includes(source)?'yellow':'black'; 
-           return serverColors[source.miner%serverColors.length]
-        },//'data(color)',
+          if(colorpolicy>0)
+           return state.current.servers[colorpolicy-1].blocks.includes(source)?'yellow':'black'; 
+          return serverColors[source.miner%serverColors.length]
+        },
         "text-valign": "center",
         "text-halign": "right",
         'font-size':'7%'
@@ -95,6 +97,7 @@ cy=cytoscape({
 });
 
 $('#cy').append(cy);
+
 
 var ARC_WIDTH = 5;
 
@@ -290,14 +293,22 @@ render.clock = function() {
     timeSlider.slider('setValue', state.current.time, false);
   }
 };
-
+var setcolorpolicy=function(model, server) {
+  colorpolicy=server.id;
+  var elems=cy.elements();
+  for(var i=0; i<elems.length;i+=1){
+    if(elems[i].group()=='nodes')
+      elems[i].data('content',elems[i].data('content'));
+  }
+}
 var serverActions = [
   ['stop', raft.stop],
   ['resume', raft.resume],
   ['restart', raft.restart],
   ['time out', raft.timeout],
   ['request', raft.clientRequest],
-  ['transaction',raft.signTransaction]
+  ['transaction',raft.signTransaction],
+  ['setcolorpolicy', setcolorpolicy]
 ];
 
 var messageActions = [
@@ -365,6 +376,12 @@ render.servers = function(serversSame) {
               .append($('<a href="#"></a>')
                 .text(action[0])
                 .click(function() {
+                  if(action[0]=='setcolorpolicy'){
+                    action[1](state.current, server);
+                    closemenu();
+                    return false;
+                  }
+                    
                   state.fork();
                   action[1](state.current, server);
                   state.save();
@@ -578,6 +595,20 @@ var button = function(label) {
   return $('<button type="button" class="btn btn-default"></button>')
     .text(label);
 };
+$('#resetcolorpolicy').append(button('reset')
+.click(function(){
+  
+    colorpolicy=0;
+  var elems=cy.elements();
+  for(var i=0; i<elems.length;i+=1){
+    if(elems[i].group()=='nodes')
+      elems[i].data('content',elems[i].data('content'));
+  }
+    
+    return false;
+  
+
+}));
 
 serverModal = function(model, server) {
   var m = $('#modal-details');
@@ -630,6 +661,11 @@ serverModal = function(model, server) {
   serverActions.forEach(function(action) {
     footer.append(button(action[0])
       .click(function(){
+        if(action[0]=='setcolorpolicy'){
+          action[1](state.current, server);
+          //closemenu();
+          return false;
+        }
         state.fork();
         action[1](model, server);
         state.save();
