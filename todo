@@ -14,9 +14,9 @@
 x fix psudorandom by (intervaling?)
 
 ! hashrate slider
-forget a block(51 attack demo)
+! forget a block(51 attack demo)
 
-
+! pull data
 
 
 
@@ -29,7 +29,7 @@ forget a block(51 attack demo)
 
 
 optional:
-    pull data
+    
     detailed transactions
 super optional:
     fix 'raft' words

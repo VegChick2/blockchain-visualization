@@ -174,5 +174,31 @@ util.readpeers=function(servers,str){
   }
   
 }
+
+util.calcHighestBlock=function(server){
+  var currentlength=0;
+  server.highestBlock=null
+    for(var i=0;i<server.blocks.length;i+=1){
+      var chain = util.getchain(server.blocks[i]);
+      if(chain.length<=currentlength)
+        continue;
+
+      var isGood=true;
+      
+      for(var j=0;j<chain.length;j+=1)
+        if(!server.blocks.includes(chain[j])){
+          isGood=false;
+          break;
+        }
+
+      if(isGood){
+        currentlength=chain.length;
+        server.highestBlock=server.blocks[i];
+      }
+      
+
+
+    }
+}
 var modelMicrosElapsed;
 Math.seedrandom('hello2.');

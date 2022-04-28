@@ -87,33 +87,20 @@ cy.on('tap', 'node', function(evt){
   let content=node.data('content');
 
   
+
   if(server.blocks.indexOf(source)!=-1){
+    //if found, remove
     server.blocks.splice(server.blocks.indexOf(source), 1);
     server.gossiped.splice(server.blocks.indexOf(source), 1);
-  }
+  
+    util.calcHighestBlock(server);
+    server.transactions=[];
+
     
-
-  var currentlength=0;
-  for(var i=0;i<server.blocks.length;i+=1){
-    var chain = util.getchain(server.blocks[i]);
-    if(chain.length<=currentlength)
-      continue;
-
-    var isGood=true;
-    
-    for(var j=0;j<chain.length;j+=1)
-      if(!server.blocks.includes(chain[j])){
-        isGood=false;
-        break;
-      }
-
-    if(isGood){
-      currentlength=chain.length;
-      server.highestBlock=server.blocks[i];
-    }
-    
-
-
+  } else{
+    //todo request for the block from neighbour
+    for (var i=0;i<server.peers.length;i++)
+      sendMessage(state.current,{from:server.id,to:server.peers[i],block:source,type:'RequestBlock'});
   }
 
   
@@ -338,8 +325,6 @@ var serverActions = [
   ['stop', raft.stop],
   ['resume', raft.resume],
   ['restart', raft.restart],
-  ['time out', raft.timeout],
-  ['request', raft.clientRequest],
   ['transaction',raft.signTransaction],
   ['setcolorpolicy', setcolorpolicy]
 ];
@@ -710,7 +695,7 @@ serverModal = function(model, server) {
       // .append(li('votedFor', server.votedFor))
       // .append(li('commitIndex', server.commitIndex))
       // .append(li('electionAlarm', relTime(server.electionAlarm, model.time)))
-      .append(li('hashrate', server.hashrate))
+      //.append(li('hashrate', server.hashrate))
       .append(li('height', server.highestBlock?server.highestBlock.height:0))
       .append(li('pending', JSON.stringify(server.transactions.map(x=>x.signature))))
       .append($('<dt>blocks</dt>'))
@@ -739,7 +724,7 @@ serverModal = function(model, server) {
 messageModal = function(model, message) {
   var m = $('#modal-details');
   $('.modal-dialog', m).removeClass('modal-lg').addClass('modal-sm');
-  $('.modal-title', m).text(message.type + ' ' + message.direction);
+  $('.modal-title', m).text(message.type);
   var li = function(label, value) {
     return '<dt>' + label + '</dt><dd>' + value + '</dd>';
   };
@@ -776,6 +761,9 @@ messageModal = function(model, message) {
     fields.append(li('signer', message.transaction.signature));
     //fields.append(li('blockMiner', message.block.miner));
 
+  } else if (message.type == 'RequestBlock'){
+    fields.append(li('blockHeight', message.block.height));
+    fields.append(li('blockMiner', message.block.miner));
   }
   $('.modal-body', m)
     .empty()

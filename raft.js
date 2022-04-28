@@ -12,9 +12,6 @@ var MAX_RPC_LATENCY = 15000;
 var ELECTION_TIMEOUT = 100000;
 var NUM_SERVERS = 5;
 var BATCH_SIZE = 1;
-
-(function() {
-
 var sendMessage = function(model, message) {
   message.sendTime = model.time;
   message.recvTime = model.time +
@@ -22,6 +19,9 @@ var sendMessage = function(model, message) {
                      Math.random() * (MAX_RPC_LATENCY - MIN_RPC_LATENCY);
   model.messages.push(message);
 };
+(function() {
+
+
 
 var sendRequest = function(model, request) {
   request.direction = 'request';
@@ -208,22 +208,6 @@ rules.mineBlock = function(model, server) {
         cy.add({ group: 'edges', data: {source:server.highestBlock.prev.graphnode.id() , target: server.highestBlock.graphnode.id() }});
       
 
-      //cy.add({ group: 'nodes', data: {content:'S'+server.id,color:serverColors[server.id % serverColors.length],shape:'hexagon'}});
-
-      // if(server.highestBlock.prev){
-      //   let [ser,l]=server.highestBlock.prev.graphnode.data('content').split(' ');
-      //   l=JSON.parse(l);
-      //   l.splice(l.indexOf(server.id), 1);
-      //   l=JSON.stringify(l);
-      //   server.highestBlock.prev.graphnode.data('content',[ser,l].join(' '))
-      // }
-      
-
-      // let [ser,l]=server.highestBlock.graphnode.data('content').split(' ');
-      // l=JSON.parse(l);
-      // l.push(server.id)
-      // l=JSON.stringify(l);
-      // server.highestBlock.graphnode.data('content',[ser,l].join(' '))
       
 
       
@@ -336,50 +320,10 @@ var handleBlockGossip = function(model, server, message) {
     //clear my transactions
 
     
-    
-    if(message.block.height>(server.highestBlock?server.highestBlock.height:0)){
-      
-      
-      
-      var increased=true;
-        
-      
+    //todo:fix logic
+    util.calcHighestBlock(server);
+    server.transactions=[];
 
-      var chain = util.getchain(message.block);
-      for(var i=0;i<chain.length;i++)
-        if(!server.blocks.includes(chain[i])){
-          increased = false;
-        };
-
-      if(increased){
-
-        // if(server.highestBlock){
-        //   let [ser,l]=server.highestBlock.graphnode.data('content').split(' ');
-        //   l=JSON.parse(l);
-        //   l.splice(l.indexOf(server.id), 1);
-        //   l=JSON.stringify(l);
-        //   server.highestBlock.graphnode.data('content',[ser,l].join(' '))
-        // }
-
-        server.highestBlock=message.block;
-        server.transactions=[]
-
-        // //todo:update pointer
-        // let [ser,l]=server.highestBlock.graphnode.data('content').split(' ');
-        // l=JSON.parse(l);
-        // l.push(server.id)
-        // l=JSON.stringify(l);
-        // server.highestBlock.graphnode.data('content',[ser,l].join(' '))
-      }
-
-
-      
-
-      
-      
-
-      
-    }
 
   }
 }
@@ -405,6 +349,14 @@ var handleTransactionGossip = function(model, server, message) {
 
 }
 
+var handleBlockRequest = function(model, server, message) {
+  if(server.blocks.includes(message.block) && server.gossiped[server.blocks.indexOf(message.block)]){
+    //if I have, and already gissiped
+    sendMessage(model,{from:server.id,to:message.from,type:'BlockGossip',block:message.block});
+
+  }
+}
+
 var handleMessage = function(model, server, message) {
   if (server.state == 'stopped')
     return;
@@ -424,6 +376,8 @@ var handleMessage = function(model, server, message) {
   } else if(message.type == 'TransactionGossip'){
       
       handleTransactionGossip(model,server,message);
+  } else if(message.type == 'RequestBlock'){
+    handleBlockRequest(model,server,message);
   }
 };
 
